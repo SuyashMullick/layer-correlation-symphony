@@ -1,0 +1,11 @@
+name: symphony-env
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - rasterio
+  - numpy
+  - pandas
+  - scipy
+  - matplotlib
+  - seaborn
