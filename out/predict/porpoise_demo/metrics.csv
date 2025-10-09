@@ -1,0 +1,2 @@
+target,predictors,n_samples,test_size,alpha,standardize,r2,rmse,mae,pearson_r,n_test
+01Porpoise_Baltic,"['32Nitrogen_Background', '15Noise_125Hz_Shipping_20181122', '13Infrastructure']",1767,0.2,1.0,True,0.14605283737182617,0.1687234292481041,0.14451386034488678,0.3849964439868927,354

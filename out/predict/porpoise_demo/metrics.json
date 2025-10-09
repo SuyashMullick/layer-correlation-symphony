@@ -1,0 +1,17 @@
+{
+  "target": "01Porpoise_Baltic",
+  "predictors": [
+    "32Nitrogen_Background",
+    "15Noise_125Hz_Shipping_20181122",
+    "13Infrastructure"
+  ],
+  "n_samples": 1767,
+  "test_size": 0.2,
+  "alpha": 1.0,
+  "standardize": true,
+  "r2": 0.14605283737182617,
+  "rmse": 0.1687234292481041,
+  "mae": 0.14451386034488678,
+  "pearson_r": 0.3849964439868927,
+  "n_test": 354
+}
