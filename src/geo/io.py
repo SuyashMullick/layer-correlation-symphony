@@ -85,11 +85,24 @@ def read_pair_as_arrays(path_a: str, path_b: str, extra_nodata: List[float] = No
         b_win, _ = _read_window(B, left, bottom, right, top)
 
         # nodata → NaN
-        nodata_list_a = [v for v in [A.nodata, *extra_nodata] if v is not None]
-        nodata_list_b = [v for v in [B.nodata, *extra_nodata] if v is not None]
+        a = a_win.astype("float32", copy=False)
+        b = b_win.astype("float32", copy=False)
 
-        a = _to_float_and_nan(a_win, nodata_list_a)
-        b = _to_float_and_nan(b_win, nodata_list_b)
+        # A
+        if A.nodata is not None:
+            a[a == A.nodata] = np.nan
+        else:
+            for nv in extra_nodata:
+                if nv is not None:
+                    a[a == nv] = np.nan
+
+        # B
+        if B.nodata is not None:
+            b[b == B.nodata] = np.nan
+        else:
+            for nv in extra_nodata:
+                if nv is not None:
+                    b[b == nv] = np.nan
 
         # ravel to 1D
         x = a.ravel()
@@ -161,9 +174,14 @@ def read_many_as_matrix(paths: list[str], extra_nodata: list[float] | None = Non
         for ds in dsets:
             win = from_bounds(left, bottom, right, top, transform=ds.transform).round_offsets().round_lengths()
             a = ds.read(1, window=win).astype("float32", copy=False)
-            nodata_values = [v for v in [ds.nodata, *extra_nodata] if v is not None]
-            for nv in nodata_values:
-                a[a == nv] = np.nan
+
+            if ds.nodata is not None:
+                a[a == ds.nodata] = np.nan
+            else:
+                for nv in extra_nodata:
+                    if nv is not None:
+                        a[a == nv] = np.nan
+
             arrays.append(a)
 
         # Stack predictors (skip first which is target)
