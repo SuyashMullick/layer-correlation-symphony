@@ -1,26 +1,22 @@
 # C2B2 Symphony Raster Analytics MVP
 
-A Python toolkit for **marine spatial data analytics**, built during the **Mistra C2B2 Hackathon #1**.
+A Python toolkit and web application for marine spatial data analytics, built during the Mistra C2B2 Hackathon #1.
 
-It enables correlation and predictive modeling across **raster layers (GeoTIFFs)** used in the **Symphony** ecosystem model by the Swedish Agency for Marine and Water Management.
-
----
+It enables correlation and predictive modeling across raster layers (GeoTIFFs) used in the Symphony ecosystem model by the Swedish Agency for Marine and Water Management.
 
 ## Features
 
-| CLI               | Description                                                                                                                                                                     |
-| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `symph-correlate` | Compute **pairwise** (and stratified) **Pearson/Spearman correlations** between layers with FDR correction, heatmaps, and hexbins.                                              |
-| `symph-predict`   | Predict a **target raster** from multiple **predictor layers** using Ridge or Random Forest regression, with **spatially blocked cross-validation** and explainability exports. |
-
----
+- **Web Application**: A user-friendly web interface to run "Compare" and "Predict" analyses without using the command line.
+- **symph-compare**: A command-line tool to compute pairwise Pearson/Spearman correlations between any two raster layers, generating an interactive scatter plot and a correlation heatmap.
+- **symph-predict**: A command-line tool to predict a target raster from multiple predictor layers using a suite of high-performance models (Random Forest, GBM, XGBoost, Neural Networks).
 
 ## Installation
 
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/<your-org>/symphony-tools.git
+git clone https://github.com/<your-org>/layer-correlation-symphony.git
+cd layer-correlation-symphony
 ```
 
 ### 2. Set up a virtual environment
@@ -38,66 +34,63 @@ source .venv/bin/activate   # On macOS/Linux
 pip install -r requirements.txt
 ```
 
----
-
 ## Data Setup
 
-Before running any CLI tools, you must download and prepare the raster data.
+The web application is pre-loaded with sample data. To use your own data, follow these steps.
 
 ### 1. Download datasets
 
 Download the 2018 Symphony ecosystem and pressure layers from the Swedish Agency for Marine and Water Management:
 
-* [Bottniska viken](https://www.havochvatten.se/download/18.3b63ec651740ce15990ccab1/1708680057942/naturvarden-och-belastningar-bottniska-viken-2018.zip)
-* [Västerhavet](https://www.havochvatten.se/download/18.3b63ec651740ce15990ccab2/1708680063585/naturvarden-och-belastningar-vasterhavet-2018.zip)
-* [Östersjön](https://www.havochvatten.se/download/18.3b63ec651740ce15990ccab0/1708680054290/naturvarden-.och-belastningar-ostersjon-2018.zip)
+- [Bottniska viken](https://www.havochvatten.se/)
+- [Västerhavet](https://www.havochvatten.se/)
+- [Östersjön](https://www.havochvatten.se/)
 
-Unzip these files into `data/raw/` so the structure looks like:
+Unzip these files into `data/aligned/` (or any other folder). The web application will automatically find and list all `.tif` files located in the `data/aligned` directory.
 
-```
-data/
- └─ raw/
-     ├─ naturvarden-och-belastningar-bottniska-viken-2018/
-     ├─ naturvarden-och-belastningar-vasterhavet-2018/
-     └─ naturvarden-.och-belastningar-ostersjon-2018/
-```
-
-### 2. Check alignment
-
-You can verify if all rasters share the same grid using:
-
-```bash
-python -m scripts.check_grid_alignment \
-  --ref data/raw/naturvarden-.och-belastningar-ostersjon-2018/National_eco_E_2018/01Porpoise_Baltic.tif \
-  data/raw/**/*.tif
-```
-
-Optional flags:
-
-* `--out` Save detailed CSV report
-* `--debug-crs` Print CRS mismatch details
-
-### 3. Align to reference grid
-
-To automatically align all rasters (and copy them into `data/aligned/`), run:
-
-```bash
-python -m scripts.align_to_ref_and_copy \
-  --ref data/raw/naturvarden-.och-belastningar-ostersjon-2018/National_eco_E_2018/01Porpoise_Baltic.tif \
-  --in-root data/raw \
-  --out-root data/aligned \
-  --report out/alignment_report.csv
-```
-
-This will copy aligned files to `data/aligned/` and fix any CRS or extent mismatches.
-
-> 💡 Tip: Choose the raster with the **largest dimensions** as the reference grid.
-
----
+💡 **Note**: The scripts assume all input rasters are aligned to the same grid (CRS, transform, and dimensions). You may need to pre-process your data using GIS software like QGIS or GDAL.
 
 ## Usage
 
-### 🔹 1. Compare Two Layers
+### 🌐 Web Application UI (Recommended)
+
+This is the simplest way to run analyses. The web application provides a graphical user interface for the compare and predict tools.
+
+#### 1. Start the Web Server
+
+From the root directory of the project, run:
+
+```bash
+python app.py
+```
+
+#### 2. Open the Application
+
+Open your web browser and navigate to `http://127.0.0.1:5000`.
+
+#### 3. Navigating the Application
+
+**The Home Page**
+
+The main page provides two choices: "Compare Layers" for simple two-layer correlation, and "Predict Ecological Impact" for more complex predictive modeling.
+
+**The Compare Page**
+
+This page is for a direct, one-to-one comparison between two raster layers. You can either select pre-loaded files from the dropdown menus or upload your own GeoTIFF files. Once you have selected two layers, click the "Compare Layers" button to start the analysis.
+
+**The Predict Page**
+
+This page allows you to predict a target variable using multiple predictor (or "driver") layers. Upload one target file and one or more predictor files. You can add more predictor file slots by clicking the "+ Add Another Predictor" button. Once your files are selected, click "Run Prediction" to train the models and generate results.
+
+**Viewing Results**
+
+After submitting a job from either the Compare or Predict page, a loading screen will appear. Once the analysis is complete, you will be redirected to the results page, which displays key metrics in a table and shows detailed, interactive diagnostic plots.
+
+### 🔹 Command-Line Interface (Advanced)
+
+For batch processing or more advanced control, you can use the command-line scripts directly.
+
+#### 1. Compare Two Layers
 
 Compare two raster layers pixel-wise to measure linear (Pearson) and rank (Spearman) correlations.
 
@@ -108,44 +101,31 @@ python -m cli.symph-compare \
   --a <path_to_layer_a.tif> \
   --b <path_to_layer_b.tif> \
   --out <output_folder> \
-  [--nodata <nodata_values>] \
-  [--sample <max_points>]
+  [--nodata <nodata_values>]
 ```
-
-**Key options**
-
-| Flag         | Description                                                   |
-| ------------ | ------------------------------------------------------------- |
-| `--a`, `--b` | Input raster layers to compare                                |
-| `--out`      | Output directory for results                                  |
-| `--nodata`   | Comma-separated list of nodata sentinels (default: `0,-9999`) |
-| `--sample`   | Max points to plot in scatter (default: 200k)                 |
 
 **Example**
 
 ```bash
 python -m cli.symph-compare \
-  --a data/aligned/.../01Porpoise_Baltic.tif \
-  --b data/aligned/.../32Nitrogen_Background.tif \
-  --out out/compare/porpoise_vs_nitrogen \
-  --nodata "-9999"
+  --a data/aligned/path/to/01Porpoise_Baltic.tif \
+  --b data/aligned/path/to/32Nitrogen_Background.tif \
+  --out out/compare/porpoise_vs_nitrogen
 ```
 
 **Outputs**
 
 ```
-out/compare/<name>/
- ├─ compare_summary.json
- ├─ scatter.png
- ├─ pearson_spearman.csv
- └─ logs.txt
+out/compare/porpoise_vs_nitrogen/
+ ├─ metrics.csv                # Pearson r, Spearman rho, and pixel count
+ ├─ metrics.json               # Metrics in JSON format
+ ├─ scatter.html               # Interactive scatter plot
+ └─ predictor_heatmap.png      # Correlation heatmap image
 ```
 
-> 💡 For a full list of options, run `python -m cli.symph-compare -h`
+💡 For a full list of options, run `python -m cli.symph-compare -h`
 
----
-
-### 🔹 2. Predict Target from Multiple Layers
+#### 2. Predict Target from Multiple Layers
 
 Train a model to predict one target raster from several predictor rasters.
 
@@ -161,107 +141,80 @@ python -m cli.symph-predict \
   [--remove_outliers] [--transform_y {none,log1p}]
 ```
 
-**Key options**
-
-| Flag                | Description                                     |
-| ------------------- | ----------------------------------------------- |
-| `--target`          | Target raster (dependent variable)              |
-| `--predictors`      | Predictor rasters (independent variables)       |
-| `--out`             | Output folder for results                       |
-| `--sample`          | Max pixels to use (default: all)                |
-| `--test_size`       | Fraction of data held out for testing           |
-| `--model`           | Model type: `rf`, `gbm`, `xgb`, `nn`, or `auto` |
-| `--transform_y`     | Apply transform to target variable              |
-| `--remove_outliers` | Remove statistical outliers before fitting      |
-
 **Example**
 
 ```bash
-export BASE="data/aligned_and_copied/naturvarden-och-belastningar-bottniska-viken-2018"  # On macOS/Linux
-# OR
-$BASE = "data/aligned_and_copied/naturvarden-och-belastningar-bottniska-viken-2018"      # On Windows
-
 python -m cli.symph-predict \
-  --target "$BASE/National_eco_N_2018/01Porpoise_Baltic.tif" \
+  --target "data/aligned/path/to/01Porpoise_Baltic.tif" \
   --predictors \
-    "$BASE/National_eco_N_2018/20sill_lognorm_v2.tif" \
-    "$BASE/National_eco_N_2018/21skarpsill_lognorm_v2.tif" \
-    "$BASE/National_eco_N_2018/19torsk_lognorm_v2.tif" \
-    "$BASE/National_press_N_2018/17Noise_2000Hz_Shipping_20181122.tif" \
-    "$BASE/National_press_N_2018/18Boating.tif" \
-  --out "out/predict/N_porpoise_prey_noise_boating" \
+    "data/aligned/path/to/20sill_lognorm_v2.tif" \
+    "data/aligned/path/to/17Noise_2000Hz_Shipping_20181122.tif" \
+  --out "out/predict/porpoise_vs_prey_noise" \
   --sample 200000 \
   --transform_y log1p \
-  --model rf
+  --model auto
 ```
 
 **Outputs**
 
 ```
-out/predict/<name>/
- ├─ prediction.tif
- ├─ residuals.tif
- ├─ uncertainty.tif
- ├─ importance.csv / importance.png
- ├─ pdp_<feature>.png
- ├─ metrics.json
- ├─ extrapolation.tif
- └─ model_card.json
+out/predict/porpoise_vs_prey_noise/
+ ├─ metrics.csv                 # R², RMSE, MAE for the best model
+ ├─ model_comparison.csv        # Performance metrics for all tested models
+ ├─ feature_importance.csv      # Importance score for each predictor
+ ├─ parity.html                 # Interactive parity plot (observed vs. predicted)
+ ├─ residuals.html              # Interactive histogram of model residuals
+ └─ predictor_heatmap.png       # Correlation heatmap of all predictor variables
 ```
 
-> 💡 For a full list of options, run `python -m cli.symph-predict -h`
-
----
+💡 For a full list of options, run `python -m cli.symph-predict -h`
 
 ## 📁 Repository Structure
 
 ```
-symphony-tools/
+layer-correlation-symphony/
+├─ app.py                       # Main Flask web application
 ├─ cli/
-│  ├─ symph-correlate.py       # CLI for correlation analysis
+│  ├─ symph-compare.py         # CLI for correlation analysis
 │  └─ symph-predict.py         # CLI for predictive mapping
-├─ src/
-│  ├─ io_stack.py              # Raster I/O, reprojection, masking, COG writer
-│  ├─ stats_corr.py            # Correlation calculations
-│  ├─ viz.py                   # Heatmaps, hexbins, importance, PDP/ALE
-│  ├─ model_cv.py              # Blocked CV, training, metrics, exports
-│  └─ guardrails.py            # Extrapolation flags, QA checks
-├─ data/                       # Input GeoTIFF layers
-├─ out/                        # Generated outputs
-├─ requirements.txt            # Dependencies
-└─ README.md                   # This file
+├─ src/                         # Core analytics and visualization modules
+│  ├─ analysis/
+│  ├─ geo/
+│  └─ viz/
+├─ static/                      # CSS and generated result files
+├─ templates/                   # HTML templates for the web app
+├─ data/
+│  └─ aligned/                 # Location for input GeoTIFF layers
+├─ out/                         # Default folder for CLI outputs
+└─ requirements.txt             # Dependencies
 ```
-
----
-
-## 🧠 Notes
-
-* Works with **float32** raster arrays.
-* **NaN** is used to mask invalid pixels.
-* Resampling: `bilinear` (continuous), `nearest` (categorical).
-* Blocked CV ensures spatially realistic evaluation.
-* RF uncertainty = per-tree prediction variance.
-
----
 
 ## 🛠️ Troubleshooting
 
-| Issue              | Cause                      | Fix                                    |
-| ------------------ | -------------------------- | -------------------------------------- |
-| Blank outputs      | Incorrect NoData mask      | Check `--nodata-values`                |
-| Mismatched extents | CRS/resolution differences | Use `--ref` and `--resampling` options |
-| CLI not found      | Environment not activated  | `source .venv/bin/activate`            |
-| High memory use    | Large rasters              | Use smaller sample or downsample       |
-
----
+| Issue | Cause | Fix |
+|-------|-------|-----|
+| Web app shows no files | Data folder is empty | Place `.tif` files in `data/aligned/` |
+| Blank outputs | Incorrect NoData values | Ensure nodata values are handled correctly |
+| CLI not found | Environment not activated | `source .venv/bin/activate` |
+| High memory use | Large rasters | Use a smaller `--sample` size |
 
 ## 👥 Credits
 
-Developed by **Team CS-LNU**
-for the **Mistra C2B2 Hackathon #1 (2025)**
-with support from the **Swedish Agency for Marine and Water Management (SwAM)**.
+Developed for the **Mistra C2B2 Hackathon #1 (2025)** by:
 
----
+- Younus Mashoor
+- Suiyash Mullick
+- Hamza Zia
+- Abdullah Saeed
+
+With support from the **Swedish Agency for Marine and Water Management (SwAM)**.
+
+### Special Thanks To
+
+- Amilcar Soares Junior
+- Rafael Messias Martins
+
+For their guidance and support throughout the project.
 
 ## 📜 License
 
