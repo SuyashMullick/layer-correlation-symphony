@@ -10,6 +10,20 @@ It enables correlation and predictive modeling across raster layers (GeoTIFFs) u
 - **symph-compare**: A command-line tool to compute pairwise Pearson/Spearman correlations between any two raster layers, generating an interactive scatter plot and a correlation heatmap.
 - **symph-predict**: A command-line tool to predict a target raster from multiple predictor layers using a suite of high-performance models (Random Forest, GBM, XGBoost, Neural Networks).
 
+## Screenshots
+
+### Model Performance Metrics
+![Performance Metrics](screenshots/metrics.png)
+*Comprehensive model evaluation metrics including R², RMSE, and MAE for multiple algorithms*
+
+### Parity Plot Analysis
+![Parity Plot](screenshots/parityplot.png)
+*Predicted vs. actual values visualization showing model accuracy across the full range of data*
+
+### Correlation Heatmap & Distribution Analysis
+![Heatmap and Histogram](screenshots/heatmapds_and_histogram.png)
+*Feature correlation matrix and target variable distribution for understanding data relationships*
+
 ## Installation
 
 ### 1. Clone the repository
@@ -197,6 +211,7 @@ layer-correlation-symphony/
 ├─ data/
 │  └─ aligned/                 # Location for input GeoTIFF layers
 ├─ out/                         # Default folder for CLI outputs
+├─ screenshots/                 # Application screenshots
 └─ requirements.txt             # Dependencies
 ```
 
