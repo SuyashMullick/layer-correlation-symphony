@@ -336,38 +336,35 @@ def run_predict():
 @app.route('/results/<run_id>')
 def results_page(run_id):
     metrics_path = OUTPUT_FOLDER / run_id / 'metrics.csv'
+    
     if metrics_path.exists():
         metrics_df = pd.read_csv(metrics_path)
-        metrics_raw = metrics_df.iloc[0].to_dict()
-        # Ensure numeric fields are actually numeric, not strings
-        metrics = {}
-        numeric_fields = ['r2', 'pearson_r', 'spearman_r', 'rmse', 'n_samples', 'n_pixels']
-        for key, value in metrics_raw.items():
-            if key in numeric_fields:
-                try:
-                    metrics[key] = float(value) if pd.notna(value) else None
-                except (ValueError, TypeError):
-                    metrics[key] = None
-            else:
-                metrics[key] = value
+        metrics = metrics_df.iloc[0].to_dict()
+        
         is_prediction = 'best_model' in metrics
         best_model_name = metrics.get('best_model', '')
         is_tree_model = best_model_name in ['RF', 'GBM', 'XGB'] 
-        scatter_filename = 'parity.png' if is_prediction else 'scatter.png'
-        scatter_url = url_for('static', filename=f"results/{run_id}/{scatter_filename}") 
-        residuals_url = url_for('static', filename=f"results/{run_id}/residuals.png") 
+        
+        plotly_parity_url = url_for('static', filename=f"results/{run_id}/parity.html") 
+        plotly_residuals_url = url_for('static', filename=f"results/{run_id}/residuals.html") 
+        
+        plotly_scatter_url = url_for('static', filename=f"results/{run_id}/scatter.html") 
+        
         importance_url = url_for('static', filename=f"results/{run_id}/feature_importance.png")
+                
         return render_template('results.html', 
                                run_id=run_id, 
                                metrics=metrics, 
-                               scatter_url=scatter_url, 
-                               residuals_url=residuals_url,
+                               # Pass the new interactive URLs
+                               plotly_parity_url=plotly_parity_url,
+                               plotly_residuals_url=plotly_residuals_url,
+                               plotly_scatter_url=plotly_scatter_url,
+                               # Keep static URLs for comparison and fallback (optional)
                                importance_url=importance_url,
                                is_prediction=is_prediction,
                                is_tree_model=is_tree_model) 
+    
     return render_template('error.html', data={'error': f"Results not found for run ID {run_id}."}), 404
-
-
 
 if __name__ == '__main__':
     print(f"\n{'='*60}")

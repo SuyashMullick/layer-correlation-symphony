@@ -6,15 +6,23 @@
     {{ super() }}
     
     <h2>Predict Impact Tool</h2>
-    <p>Upload a Target Layer (Y) and multiple Driver Layers (X) to train and run the best-performing non-linear ensemble model (RF, GBM, XGB, NN).</p>
+    <p>
+        Upload a Target Layer (Y) and multiple Driver Layers (X) to train and run 
+        the best-performing non-linear ensemble model (RF, GBM, XGB, NN).
+    </p>
     
-    <form method="POST" action="{{ url_for('run_predict') }}" enctype="multipart/form-data">
-        
+    <form 
+        method="POST" 
+        action="{{ url_for('run_predict') }}" 
+        enctype="multipart/form-data" 
+        id="predict-form" 
+        onsubmit="return validatePredictForm(this)"
+    >
         <fieldset>
             <legend>Target Layer (Y)</legend>
-            <div>
+            <div style="margin-bottom: 10px;">
                 <label for="target_file">1. Target Layer (e.g., Porpoise Density):</label>
-                <input type="file" id="target_file" name="target_file" accept=".tif" required> 
+                <input type="file" id="target_file" name="target_file" accept=".tif">
             </div>
         </fieldset>
 
@@ -25,12 +33,12 @@
             <div id="predictor_list">
                 <div class="predictor-input-group">
                     <label>Predictor 1:</label>
-                    <input type="file" name="predictor_files" accept=".tif" required>
+                    <input type="file" name="predictor_files" accept=".tif">
                 </div>
             </div>
-            
+
             <button type="button" onclick="addPredictor()">+ Add Another Predictor</button>
-            <p class="note">You can remove a file by clicking the 'X' next to it.</p>
+            <p class="note">You can remove a file by clicking the 'X Remove' button.</p>
         </fieldset>
 
         <br>
@@ -40,7 +48,9 @@
             <div>
                 <label for="model_choice">3. Select Model Type:</label>
                 <select id="model_choice" name="model_choice" required>
-                    <option value="auto" selected>auto (Compare all: RF, GBM, XGB, NN)</option>
+                    <option value="auto" selected>
+                        auto (Compare all: RF, GBM, XGB, NN)
+                    </option>
                     {% for model in model_choices %}
                         <option value="{{ model }}">{{ model | upper }}</option>
                     {% endfor %}
@@ -50,35 +60,73 @@
         
         <br>
 
-        <button type="submit">Run Prediction</button>
-        
+        <button type="submit" id="predict-submit-button">Run Prediction</button>
     </form>
     
     <script>
-        let predictorCount = 1;
-        const predictorList = document.getElementById('predictor_list');
-
-        function addPredictor() {
-            predictorCount++;
-            const newDiv = document.createElement('div');
-            newDiv.className = 'predictor-input-group';
-            newDiv.innerHTML = `
-                <label>Predictor ${predictorCount}:</label>
-                <input type="file" name="predictor_files" accept=".tif" required>
-                <button type="button" onclick="removePredictor(this)">X Remove</button>
-            `;
-            predictorList.appendChild(newDiv);
-        }
-
-        function removePredictor(button) {
-            const group = button.parentNode;
-            group.remove();
-            // Re-label the remaining inputs (optional, but good UX)
-            const remainingGroups = predictorList.getElementsByClassName('predictor-input-group');
-            for(let i = 0; i < remainingGroups.length; i++) {
-                remainingGroups[i].querySelector('label').innerText = `Predictor ${i + 1}:`;
+        // ADD THIS FUNCTION
+        function showLoading() {
+            const overlay = document.getElementById('loading-overlay');
+            if (overlay) {
+                overlay.style.display = 'flex';
             }
-            predictorCount = remainingGroups.length;
         }
+    
+        document.addEventListener("DOMContentLoaded", () => {
+            let predictorCount = 1;
+            const predictorList = document.getElementById('predictor_list');
+
+            window.addPredictor = function() {
+                predictorCount++;
+                const newDiv = document.createElement('div');
+                newDiv.className = 'predictor-input-group';
+                newDiv.innerHTML = `
+                    <label>Predictor ${predictorCount}:</label>
+                    <input type="file" name="predictor_files" accept=".tif">
+                    <button type="button" onclick="removePredictor(this)">X Remove</button>
+                `;
+                predictorList.appendChild(newDiv);
+            };
+
+            window.removePredictor = function(button) {
+                const group = button.parentNode;
+                group.remove();
+                
+                // Re-label remaining predictors
+                const remainingGroups = predictorList.getElementsByClassName('predictor-input-group');
+                for (let i = 0; i < remainingGroups.length; i++) {
+                    remainingGroups[i].querySelector('label').innerText = `Predictor ${i + 1}:`;
+                }
+                predictorCount = remainingGroups.length;
+            };
+
+            window.validatePredictForm = function(form) {
+                const targetFileInput = document.getElementById('target_file');
+                const predictorInputs = document.getElementsByName('predictor_files');
+                let hasPredictor = false;
+
+                if (!targetFileInput || targetFileInput.files.length === 0) {
+                    alert("Please select a Target Layer (Y).");
+                    return false;
+                }
+
+                for (let i = 0; i < predictorInputs.length; i++) {
+                    if (predictorInputs[i].files && predictorInputs[i].files.length > 0) {
+                        hasPredictor = true;
+                        break;
+                    }
+                }
+
+                if (!hasPredictor) {
+                    alert("Please select at least one Predictor/Driver Layer (X).");
+                    return false;
+                }
+                
+                // MODIFIED: Call showLoading() on successful validation
+                showLoading();
+
+                return true;
+            };
+        });
     </script>
 {% endblock content %}

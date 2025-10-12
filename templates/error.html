@@ -22,4 +22,13 @@
         <a href="/compare">Try a different comparison</a>
     </p>
 
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const globalOverlay = document.getElementById('loading-overlay');
+            if (globalOverlay) {
+                globalOverlay.style.display = 'none';
+            }
+        });
+    </script>
+
 {% endblock content %}

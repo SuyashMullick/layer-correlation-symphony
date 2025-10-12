@@ -25,7 +25,7 @@
                 <td>RMSE (Root Mean Squared Error)</td>
                 <td>{{ metrics.get('rmse') | round(4) if metrics.get('rmse') is not none else 'N/A' }}</td>
             </tr>
-             <tr>
+            <tr>
                 <td>MAE (Mean Absolute Error)</td>
                 <td>{{ metrics.get('mae') | round(4) if metrics.get('mae') is not none else 'N/A' }}</td>
             </tr>
@@ -54,26 +54,30 @@
         <h3 style="margin-top: 30px;">Visual Diagnostics</h3>
 
         {% if is_prediction %}
-            <h4>Prediction Model Diagnostics</h4>
+            <h4>Prediction Model Diagnostics (Interactive)</h4>
             <div style="display: flex; gap: 20px; flex-wrap: wrap;">
-                <div>
+                
+                <div style="flex: 1; min-width: 450px;">
                     <h5>Parity Plot (Observed vs. Predicted)</h5>
-                    <img src="{{ scatter_url }}" alt="Parity Plot" style="max-width: 450px; border: 1px solid #ccc;">
+                    <iframe src="{{ plotly_parity_url }}" frameborder="0" scrolling="no" style="width: 750px; height: 750px; border: none; background: transparent;"></iframe>
                 </div>
-                <div>
+                
+                <div style="flex: 1; min-width: 700px;">
                     <h5>Residuals Histogram</h5>
-                    <img src="{{ residuals_url }}" alt="Residuals Histogram" style="max-width: 450px; border: 1px solid #ccc;">
+                    <iframe src="{{ plotly_residuals_url }}" frameborder="0" scrolling="no" style="width: 100%; height: 750px; border: none; background: transparent;"></iframe>
                 </div>
+                
                 {% if is_prediction and is_tree_model %}
-                <div>
+                <div style="flex: 1; min-width: 450px;">
                     <h5>Feature Importance</h5>
-                    <img src="{{ importance_url }}" alt="Feature Importance Plot" style="max-width: 450px; border: 1px solid #ccc;">
+                    <img src="{{ importance_url }}" alt="Feature Importance Plot" style="width: 100%; max-width: 500px; height: auto; border: 1px solid var(--border); background: var(--surface-light);">
                 </div>
                 {% endif %}
             </div>
+            
         {% else %}
-            <h4>Correlation Scatter Plot</h4>
-            <img src="{{ scatter_url }}" alt="Correlation Scatter Plot" style="max-width: 600px; border: 1px solid #ccc;">
+            <h4>Correlation Scatter Plot (Interactive)</h4>
+             <iframe src="{{ plotly_scatter_url }}" frameborder="0" scrolling="no" style="width: 100%; max-width: 800px; height: 800px; border: none; background: transparent;"></iframe>
         {% endif %}
 
     {% else %}
