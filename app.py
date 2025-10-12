@@ -1,55 +1,51 @@
 import os
 import subprocess
-import time 
+import time
+import sys
 from flask import Flask, render_template, request, redirect, url_for, send_from_directory
 from werkzeug.utils import secure_filename
 from pathlib import Path
-import pandas as pd 
+import pandas as pd
 
 app = Flask(__name__)
 
-# --- Configuration ---
 PROJECT_ROOT = Path(os.path.dirname(os.path.abspath(__file__)))
-VENV_PYTHON_EXEC = PROJECT_ROOT / '.venv' / 'Scripts' / 'python.exe'
+# Use the Python executable that launched the Flask app (works on all OS)
+PYTHON_EXEC = Path(sys.executable)
 UPLOAD_FOLDER = PROJECT_ROOT / 'uploads'
-OUTPUT_FOLDER = PROJECT_ROOT / 'static' / 'results' 
+OUTPUT_FOLDER = PROJECT_ROOT / 'static' / 'results'
 
-# Ensure directories exist
 for folder in [UPLOAD_FOLDER, OUTPUT_FOLDER]:
     folder.mkdir(parents=True, exist_ok=True)
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['OUTPUT_FOLDER'] = OUTPUT_FOLDER
-# ---------------------
 
-def _check_venv():
-    """Helper to ensure VENV executable path exists."""
-    if not VENV_PYTHON_EXEC.exists():
-        return {'status': 'FAILURE', 'error': f"VENV Error: Cannot find Python executable at {VENV_PYTHON_EXEC}. Check VENV name/path."}
+def _check_python():
+    if not PYTHON_EXEC.exists():
+        return {'status': 'FAILURE', 'error': f"Python executable not found at {PYTHON_EXEC}. Ensure your environment is activated."}
     return None
 
 def run_comparison_script(filepath_a: str, filepath_b: str, output_id: str) -> dict:
-    """Executes the symph-compare.py script."""
-    
-    venv_check = _check_venv()
-    if venv_check: return venv_check
-    
+    python_check = _check_python()
+    if python_check: return python_check
+
     run_output_dir = OUTPUT_FOLDER / output_id
     run_output_dir.mkdir(exist_ok=True)
-    
+
     command = [
-        str(VENV_PYTHON_EXEC), '-m', 'cli.symph-compare', 
+        str(PYTHON_EXEC), '-m', 'cli.symph-compare',
         '--a', filepath_a,
         '--b', filepath_b,
-        '--out', str(run_output_dir), 
+        '--out', str(run_output_dir),
         '--nodata', '0,-9999',
         '--sample', '500000'
     ]
-    
+
     try:
         result = subprocess.run(command, cwd=PROJECT_ROOT, capture_output=True, text=True, check=True)
         metrics_path = run_output_dir / 'metrics.csv'
-        
+
         if metrics_path.exists():
             metrics_df = pd.read_csv(metrics_path)
             stats = metrics_df.iloc[0].to_dict()
@@ -72,33 +68,29 @@ def run_comparison_script(filepath_a: str, filepath_b: str, output_id: str) -> d
 
 
 def run_prediction_script(target_file: str, predictor_files: list, model: str, output_id: str) -> dict:
-    """
-    Executes the symph-predict.py script.
-    """
-    
-    venv_check = _check_venv()
-    if venv_check: return venv_check
-    
+    python_check = _check_python()
+    if python_check: return python_check
+
     run_output_dir = OUTPUT_FOLDER / output_id
     run_output_dir.mkdir(exist_ok=True)
-    
+
     command = [
-        str(VENV_PYTHON_EXEC), '-m', 'cli.symph-predict', 
+        str(PYTHON_EXEC), '-m', 'cli.symph-predict',
         '--target', target_file,
         '--predictors'
     ]
-    command.extend(predictor_files) 
+    command.extend(predictor_files)
     command.extend([
-        '--out', str(run_output_dir), 
+        '--out', str(run_output_dir),
         '--model', model,
-        '--transform_y', 'log1p', 
+        '--transform_y', 'log1p',
         '--sample', '200000'
     ])
-    
+
     try:
         result = subprocess.run(command, cwd=PROJECT_ROOT, capture_output=True, text=True, check=True)
         metrics_path = run_output_dir / 'metrics.csv'
-        
+
         if metrics_path.exists():
             metrics_df = pd.read_csv(metrics_path)
             stats = metrics_df.iloc[0].to_dict()
