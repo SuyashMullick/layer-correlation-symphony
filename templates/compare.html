@@ -7,28 +7,86 @@
     <h2>Compare Tool Interface</h2>
     <p>Please select the two layers you wish to compare:</p>
     
-    {# 1. Start the FORM here and define the action/method #}
     <form method="POST" action="/run_compare" enctype="multipart/form-data">
         
         {# Layer 1 Input #}
-        <div>
-            <label for="filePicker1">Layer 1: Select a File</label>
-            <input type="file" id="filePicker1" name="user_file1" required> 
-            <span id="fileName1" class="file-name-display">No file selected.</span>
-        </div>
-        <br><br>
+        <fieldset style="margin-bottom: 20px; padding: 15px; border: 1px solid #ccc;">
+            <legend><strong>Layer 1</strong></legend>
+            
+            <div style="margin-bottom: 10px;">
+                <label for="file_select_1">Select from Available Files:</label>
+                <select id="file_select_1" name="file_path_1" style="width: 100%; max-width: 600px;">
+                    <option value="">-- Select a file --</option>
+                    {% for file in available_files %}
+                        <option value="{{ file }}">{{ file }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div style="margin-top: 10px; margin-left: 20px;">
+                <em>OR upload your own file:</em><br>
+                <input type="file" id="filePicker1" name="user_file1" accept=".tif,.tiff"> 
+                <span id="fileName1" class="file-name-display"></span>
+            </div>
+        </fieldset>
         
         {# Layer 2 Input #}
-        <div>
-            <label for="filePicker2">Layer 2: Select a File</label>
-            <input type="file" id="filePicker2" name="user_file2" required>
-            <span id="fileName2" class="file-name-display">No file selected.</span>
-        </div>
-        <br><br>
+        <fieldset style="margin-bottom: 20px; padding: 15px; border: 1px solid #ccc;">
+            <legend><strong>Layer 2</strong></legend>
+            
+            <div style="margin-bottom: 10px;">
+                <label for="file_select_2">Select from Available Files:</label>
+                <select id="file_select_2" name="file_path_2" style="width: 100%; max-width: 600px;">
+                    <option value="">-- Select a file --</option>
+                    {% for file in available_files %}
+                        <option value="{{ file }}">{{ file }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div style="margin-top: 10px; margin-left: 20px;">
+                <em>OR upload your own file:</em><br>
+                <input type="file" id="filePicker2" name="user_file2" accept=".tif,.tiff">
+                <span id="fileName2" class="file-name-display"></span>
+            </div>
+        </fieldset>
         
-        {# 2. The button must be type="submit" to trigger the form action #}
-        <button type="submit">Compare</button>
+        <button type="submit" style="padding: 10px 20px; font-size: 16px;">Compare Layers</button>
         
     </form>
+    
+    <script>
+        // Display filename when file is selected
+        document.getElementById('filePicker1').addEventListener('change', function(e) {
+            const fileName = e.target.files[0]?.name || 'No file selected';
+            document.getElementById('fileName1').textContent = fileName;
+            if (e.target.files[0]) {
+                document.getElementById('file_select_1').value = ''; // Clear dropdown
+            }
+        });
+        
+        document.getElementById('filePicker2').addEventListener('change', function(e) {
+            const fileName = e.target.files[0]?.name || 'No file selected';
+            document.getElementById('fileName2').textContent = fileName;
+            if (e.target.files[0]) {
+                document.getElementById('file_select_2').value = ''; // Clear dropdown
+            }
+        });
+        
+        // Clear file upload when dropdown is selected
+        document.getElementById('file_select_1').addEventListener('change', function(e) {
+            if (e.target.value) {
+                document.getElementById('filePicker1').value = '';
+                document.getElementById('fileName1').textContent = '';
+            }
+        });
+        
+        document.getElementById('file_select_2').addEventListener('change', function(e) {
+            if (e.target.value) {
+                document.getElementById('filePicker2').value = '';
+                document.getElementById('fileName2').textContent = '';
+            }
+        });
+    </script>
     
 {% endblock main_nav_links %}

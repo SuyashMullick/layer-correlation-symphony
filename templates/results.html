@@ -16,20 +16,20 @@
             </tr>
             <tr>
                 <td>R² (Coefficient of Determination)</td>
-                <td>{{ metrics.get('r2', 'N/A') | round(4) }}</td>
+                <td>{{ metrics.get('r2') | round(4) if metrics.get('r2') is not none else 'N/A' }}</td>
             </tr>
             <tr>
                 <td>Pearson Correlation ($r$)</td>
-                <td>{{ metrics.get('pearson_r', 'N/A') | round(4) }}</td>
+                <td>{{ metrics.get('pearson_r') | round(4) if metrics.get('pearson_r') is not none else 'N/A' }}</td>
             </tr>
             <tr>
                 <td>RMSE (Root Mean Squared Error)</td>
-                <td>{{ metrics.get('rmse', 'N/A') | round(4) }}</td>
+                <td>{{ metrics.get('rmse') | round(4) if metrics.get('rmse') is not none else 'N/A' }}</td>
             </tr>
             {% if is_prediction %}
             <tr>
                 <td>Total Samples Used (N)</td>
-                <td>{{ metrics.n_samples | int }}</td>
+                <td>{{ metrics.n_samples | int if metrics.n_samples is not none else 'N/A' }}</td>
             </tr>
             {% endif %}
         </table>
