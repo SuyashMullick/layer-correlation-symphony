@@ -163,17 +163,17 @@ export BASE="data/aligned/naturvarden-och-belastningar-bottniska-viken-2018"  # 
 # OR
 $BASE = "data/aligned/naturvarden-och-belastningar-bottniska-viken-2018"      # On Windows
 
-python -m cli.symph-predict \
-  --target "$BASE/National_eco_N_2018/01Porpoise_Baltic.tif" \
-  --predictors \
-    "$BASE/National_eco_N_2018/20sill_lognorm_v2.tif" \
-    "$BASE/National_eco_N_2018/21skarpsill_lognorm_v2.tif" \
-    "$BASE/National_eco_N_2018/19torsk_lognorm_v2.tif" \
-    "$BASE/National_press_N_2018/17Noise_2000Hz_Shipping_20181122.tif" \
-    "$BASE/National_press_N_2018/18Boating.tif" \
-  --out "out/predict/N_porpoise_prey_noise_boating" \
-  --sample 200000 \
-  --transform_y log1p \
+python -m cli.symph-predict
+  --target "$BASE/National_eco_N_2018/01Porpoise_Baltic.tif"
+  --predictors
+    "$BASE/National_eco_N_2018/20sill_lognorm_v2.tif"
+    "$BASE/National_eco_N_2018/21skarpsill_lognorm_v2.tif"
+    "$BASE/National_eco_N_2018/19torsk_lognorm_v2.tif"
+    "$BASE/National_press_N_2018/17Noise_2000Hz_Shipping_20181122.tif"
+    "$BASE/National_press_N_2018/18Boating.tif"
+  --out "out/predict/N_porpoise_prey_noise_boating"
+  --sample 200000
+  --transform_y log1p
   --model rf
 ```
 
