@@ -1,9 +1,14 @@
 # C2B2 Symphony Raster Analytics
 
-A Python toolkit and web application for marine spatial data analytics, built during the Mistra C2B2 Hackathon #1.
+A web application and Python toolkit for marine spatial data analytics, built for the Mistra C2B2 Hackathon. This project simplifies the analysis of geospatial raster data (GeoTIFFs) from the Symphony ecosystem model.
 
-It enables correlation and predictive modeling across raster layers (GeoTIFFs) used in the Symphony ecosystem model by the Swedish Agency for Marine and Water Management.
+Our tool allows users to perform two key analyses:
 
+- Compare Layers: Directly measure the statistical relationship between any two layers. For example, you can quantify how shipping noise correlates with porpoise density.
+
+- Predict Ecological Impact: Use machine learning to predict an ecosystem layer from multiple human pressure and environmental drivers. For instance, you can model fish populations based on factors like water temperature, nutrient levels, and fishing intensity.
+
+These powerful tools are accessible through both a simple, user-friendly web interface and advanced command-line scripts.
 ## Features
 
 - **Web Application**: A user-friendly web interface to run "Compare" and "Predict" analyses without using the command line.
