@@ -52,7 +52,7 @@ Unzip these files into `data/aligned/` (or any other folder). The web applicatio
 
 ## Usage
 
-### 🌐 Web Application UI (Recommended)
+### 🌐 Web Application UI
 
 This is the simplest way to run analyses. The web application provides a graphical user interface for the compare and predict tools.
 
@@ -107,10 +107,11 @@ python -m cli.symph-compare
 **Example**
 
 ```bash
-python -m cli.symph-compare 
-  --a data/aligned/path/to/01Porpoise_Baltic.tif 
-  --b data/aligned/path/to/32Nitrogen_Background.tif 
+python -m cli.symph-compare
+  --a data/aligned/naturvarden-.och-belastningar-ostersjon-2018/National_eco_E_2018/01Porpoise_Baltic.tif
+  --b data/aligned/naturvarden-.och-belastningar-ostersjon-2018/National_press_E_2018/32Nitrogen_Background.tif
   --out out/compare/porpoise_vs_nitrogen
+  --nodata "-9999"
 ```
 
 **Outputs**
@@ -144,30 +145,40 @@ python -m cli.symph-predict
 **Example**
 
 ```bash
-python -m cli.symph-predict 
-  --target "data/aligned/path/to/01Porpoise_Baltic.tif" 
-  --predictors 
-    "data/aligned/path/to/20sill_lognorm_v2.tif" 
-    "data/aligned/path/to/17Noise_2000Hz_Shipping_20181122.tif" 
-  --out "out/predict/porpoise_vs_prey_noise" 
-  --sample 200000 
-  --transform_y log1p 
-  --model auto
+export BASE="data/aligned/naturvarden-och-belastningar-bottniska-viken-2018"  # On macOS/Linux
+# OR
+$BASE = "data/aligned/naturvarden-och-belastningar-bottniska-viken-2018"      # On Windows
+
+python -m cli.symph-predict \
+  --target "$BASE/National_eco_N_2018/01Porpoise_Baltic.tif" \
+  --predictors \
+    "$BASE/National_eco_N_2018/20sill_lognorm_v2.tif" \
+    "$BASE/National_eco_N_2018/21skarpsill_lognorm_v2.tif" \
+    "$BASE/National_eco_N_2018/19torsk_lognorm_v2.tif" \
+    "$BASE/National_press_N_2018/17Noise_2000Hz_Shipping_20181122.tif" \
+    "$BASE/National_press_N_2018/18Boating.tif" \
+  --out "out/predict/N_porpoise_prey_noise_boating" \
+  --sample 200000 \
+  --transform_y log1p \
+  --model rf
 ```
 
 **Outputs**
 
 ```
-out/predict/porpoise_vs_prey_noise/
- ├─ metrics.csv                 # R², RMSE, MAE for the best model
- ├─ model_comparison.csv        # Performance metrics for all tested models
- ├─ feature_importance.csv      # Importance score for each predictor
- ├─ parity.html                 # Interactive parity plot (observed vs. predicted)
- ├─ residuals.html              # Interactive histogram of model residuals
- └─ predictor_heatmap.png       # Correlation heatmap of all predictor variables
+out/predict/<name>/
+├── feature_importance.csv
+├── metrics.csv
+├── parity.html
+├── parity.png
+├── predictor_heatmap.png
+├── residuals.html
+└── residuals.png
 ```
 
-💡 For a full list of options, run `python -m cli.symph-predict -h`
+> 💡 For a full list of options, run `python -m cli.symph-predict -h`
+
+---
 
 ## 📁 Repository Structure
 
@@ -189,23 +200,14 @@ layer-correlation-symphony/
 └─ requirements.txt             # Dependencies
 ```
 
-## 🛠️ Troubleshooting
-
-| Issue | Cause | Fix |
-|-------|-------|-----|
-| Web app shows no files | Data folder is empty | Place `.tif` files in `data/aligned/` |
-| Blank outputs | Incorrect NoData values | Ensure nodata values are handled correctly |
-| CLI not found | Environment not activated | `source .venv/bin/activate` |
-| High memory use | Large rasters | Use a smaller `--sample` size |
-
 ## 👥 Credits
 
 Developed for the **Mistra C2B2 Hackathon #1 (2025)** by:
 
-- Younus Mashoor
-- Suiyash Mullick
-- Hamza Zia
-- Abdullah Saeed
+- Younus Mashoor  - younusmashoor@gmail.com
+- Suyash Mullick  - suyash.mullick@gmail.com
+- Hamza Zia       - hamza.zia@lnu.se
+- Abdullah Saeed  - as228aw@student.lnu.se
 
 
 ### Special Thanks To
