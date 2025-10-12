@@ -6,9 +6,71 @@ from typing import Tuple, Dict, List
 
 import numpy as np
 import rasterio
+from rasterio.crs import CRS
 from rasterio.windows import from_bounds
 from affine import Affine
+from pyproj import CRS as PJCRS  # NEW
 
+
+def _crs_equivalent(crs_a, crs_b) -> bool:
+    """
+    Robust CRS equality across WKT/EPSG variants:
+    1) pyproj equals()
+    2) same EPSG code
+    3) same LAEA core proj params (proj, lat_0, lon_0, x_0, y_0, units)
+    """
+    try:
+        A = PJCRS.from_user_input(crs_a)
+        B = PJCRS.from_user_input(crs_b)
+
+        # 1) strict equality (axes/order-normalized)
+        if A == B or A.equals(B):
+            return True
+
+        # 2) EPSG code equality (covers EPSG:3035 vs WKT3035)
+        ea, eb = A.to_epsg(), B.to_epsg()
+        if ea is not None and eb is not None and ea == eb:
+            return True
+
+        # 3) proj param equality for LAEA flavors (tolerant compare)
+        def proj_core(c: PJCRS):
+            d = c.to_dict()
+            # keys commonly present in 3035 definitions
+            keep = ("proj", "lat_0", "lon_0", "x_0", "y_0", "units", "datum", "type")
+            out = {k: d.get(k) for k in keep}
+            # normalize numbers to avoid float wiggles
+            for k in ("lat_0", "lon_0", "x_0", "y_0"):
+                if out.get(k) is not None:
+                    out[k] = round(float(out[k]), 9)
+            return out
+
+        if proj_core(A) == proj_core(B):
+            return True
+
+        return False
+    except Exception:
+        # last resort: try rasterio's CRS equals (in case pyproj parsing failed)
+        try:
+            RA = CRS.from_user_input(crs_a)
+            RB = CRS.from_user_input(crs_b)
+            return RA.equals(RB)
+        except Exception:
+            return False
+
+
+def _crs_str_for_msg(crs) -> str:
+    try:
+        c = PJCRS.from_user_input(crs)
+        epsg = c.to_epsg()
+        if epsg:
+            return f"EPSG:{epsg}"
+        return c.to_wkt()
+    except Exception:
+        try:
+            c = CRS.from_user_input(crs)
+            return c.to_wkt()
+        except Exception:
+            return str(crs)
 
 def _snap_to_grid(x: float, origin: float, step: float, mode: str) -> float:
     """Snap coordinate x to grid defined by (origin, step). mode: 'ceil' or 'floor'."""
@@ -57,9 +119,13 @@ def read_pair_as_arrays(path_a: str, path_b: str, extra_nodata: List[float] = No
         raise FileNotFoundError(f"Not found: {path_b}")
 
     with rasterio.open(pa) as A, rasterio.open(pb) as B:
-        # sanity: same CRS and resolution
-        if str(A.crs) != str(B.crs):
-            raise ValueError(f"CRS mismatch: {A.crs} vs {B.crs}")
+        # robust CRS check
+        if not _crs_equivalent(A.crs, B.crs):
+            raise ValueError(
+                "CRS mismatch:\n"
+                f"  A: {_crs_str_for_msg(A.crs)}\n"
+                f"  B: {_crs_str_for_msg(B.crs)}"
+            )
         ax, ay = A.res
         bx, by = B.res
         if abs(ax - bx) > 1e-6 or abs(ay - by) > 1e-6:
@@ -84,25 +150,21 @@ def read_pair_as_arrays(path_a: str, path_b: str, extra_nodata: List[float] = No
         a_win, t_win = _read_window(A, left, bottom, right, top)
         b_win, _ = _read_window(B, left, bottom, right, top)
 
-        # nodata → NaN
+        # nodata → NaN (never treat 0 as nodata)
         a = a_win.astype("float32", copy=False)
         b = b_win.astype("float32", copy=False)
 
-        # A
         if A.nodata is not None:
             a[a == A.nodata] = np.nan
-        else:
-            for nv in extra_nodata:
-                if nv is not None:
-                    a[a == nv] = np.nan
+        for nv in extra_nodata:
+            if nv is not None:
+                a[a == nv] = np.nan
 
-        # B
         if B.nodata is not None:
             b[b == B.nodata] = np.nan
-        else:
-            for nv in extra_nodata:
-                if nv is not None:
-                    b[b == nv] = np.nan
+        for nv in extra_nodata:
+            if nv is not None:
+                b[b == nv] = np.nan
 
         # ravel to 1D
         x = a.ravel()
@@ -120,6 +182,7 @@ def read_pair_as_arrays(path_a: str, path_b: str, extra_nodata: List[float] = No
 
     return x, y, meta
 
+
 def read_many_as_matrix(paths: list[str], extra_nodata: list[float] | None = None):
     """
     Read multiple rasters and return a common intersection as:
@@ -127,8 +190,6 @@ def read_many_as_matrix(paths: list[str], extra_nodata: list[float] | None = Non
       y: (n_pixels,)                for paths[0] (target)
     Returns X, y, meta dict.
     """
-    from rasterio.windows import from_bounds
-
     if extra_nodata is None:
         extra_nodata = []
 
@@ -142,14 +203,20 @@ def read_many_as_matrix(paths: list[str], extra_nodata: list[float] | None = Non
         dsets.append(ds)
 
     try:
-        # Check CRS + resolution consistency
-        crs0 = str(dsets[0].crs)
-        res0 = dsets[0].res
+        # Check CRS + resolution consistency (robust CRS compare)
+        ref = dsets[0]
+        ref_crs = ref.crs
+        ref_res = ref.res
+
         for ds in dsets[1:]:
-            if str(ds.crs) != crs0:
-                raise ValueError(f"CRS mismatch: {dsets[0].crs} vs {ds.crs}")
-            if abs(ds.res[0] - res0[0]) > 1e-6 or abs(ds.res[1] - res0[1]) > 1e-6:
-                raise ValueError(f"Resolution mismatch: {res0} vs {ds.res}")
+            if not _crs_equivalent(ref_crs, ds.crs):
+                raise ValueError(
+                    "CRS mismatch among inputs:\n"
+                    f"  ref: {_crs_str_for_msg(ref_crs)}\n"
+                    f"  got: {_crs_str_for_msg(ds.crs)}"
+                )
+            if abs(ds.res[0] - ref_res[0]) > 1e-6 or abs(ds.res[1] - ref_res[1]) > 1e-6:
+                raise ValueError(f"Resolution mismatch: {ref_res} vs {ds.res}")
 
         # Intersection of bounds across all rasters
         left = max(ds.bounds.left for ds in dsets)
@@ -160,15 +227,15 @@ def read_many_as_matrix(paths: list[str], extra_nodata: list[float] | None = Non
             raise ValueError("No common spatial intersection among rasters.")
 
         # Snap to grid of first dataset
-        ax, ay = res0
-        x0, y0 = dsets[0].transform.c, dsets[0].transform.f
+        ax, ay = ref_res
+        x0, y0 = ref.transform.c, ref.transform.f
         left = _snap_to_grid(left, x0, ax, "ceil")
         right = _snap_to_grid(right, x0, ax, "floor")
         top = _snap_to_grid(top, y0, ay, "floor")
         bottom = _snap_to_grid(bottom, y0, ay, "ceil")
 
-        # Build window for each ds and read
-        win0 = from_bounds(left, bottom, right, top, transform=dsets[0].transform).round_offsets().round_lengths()
+        # Build window and read
+        win0 = from_bounds(left, bottom, right, top, transform=ref.transform).round_offsets().round_lengths()
 
         arrays = []
         for ds in dsets:
@@ -177,10 +244,9 @@ def read_many_as_matrix(paths: list[str], extra_nodata: list[float] | None = Non
 
             if ds.nodata is not None:
                 a[a == ds.nodata] = np.nan
-            else:
-                for nv in extra_nodata:
-                    if nv is not None:
-                        a[a == nv] = np.nan
+            for nv in extra_nodata:
+                if nv is not None:
+                    a[a == nv] = np.nan
 
             arrays.append(a)
 
@@ -191,9 +257,9 @@ def read_many_as_matrix(paths: list[str], extra_nodata: list[float] | None = Non
         y = target
 
         meta = dict(
-            crs=dsets[0].crs,
-            transform=dsets[0].window_transform(win0),
-            res=res0,
+            crs=ref.crs,
+            transform=ref.window_transform(win0),
+            res=ref_res,
             width=int(win0.width),
             height=int(win0.height),
             target=Path(paths[0]).stem,
