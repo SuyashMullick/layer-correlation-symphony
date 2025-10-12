@@ -88,7 +88,7 @@ def write_parity_plotly(
     fig.update_yaxes(scaleanchor="x", scaleratio=1)
 
     Path(out_html).parent.mkdir(parents=True, exist_ok=True)
-    plot_offline(fig, filename=str(out_html), auto_open=False, include_plotlyjs="cdn")
+    plot_offline(fig, filename=str(out_html), auto_open=False, include_plotlyjs=True)
 
 
 def write_residuals_plotly(
@@ -122,7 +122,7 @@ def write_residuals_plotly(
     fig.add_vline(x=0, line_dash="dash", line_width=2)
 
     Path(out_html).parent.mkdir(parents=True, exist_ok=True)
-    plot_offline(fig, filename=str(out_html), auto_open=False, include_plotlyjs="cdn")
+    plot_offline(fig, filename=str(out_html), auto_open=False, include_plotlyjs=True)
 
 
 def write_scatter_plotly(
@@ -145,39 +145,21 @@ def write_scatter_plotly(
     # Decide representation based on size
     use_density = x.size > density_cutover
 
-    if use_density:
-        # 2D histogram + thin subsample overlay
-        fig = make_subplots(rows=1, cols=1)
-        fig.add_trace(
-            go.Histogram2d(
-                x=x, y=y, nbinsx=80, nbinsy=80, colorbar=dict(title="count"),
-                showscale=True
-            )
-        )
-        n_overlay = min(150_000, x.size)
-        idx = np.random.default_rng(42).choice(x.size, size=n_overlay, replace=False)
-        xo, yo = x[idx], y[idx]
-        fig.add_trace(
-            go.Scattergl(
-                x=xo, y=yo, mode="markers", name="sample",
-                marker=dict(size=2, opacity=0.25),
-                hovertemplate=f"{x_label}=%{{x:.4f}}<br>{y_label}=%{{y:.4f}}<extra></extra>",
-            )
-        )
-    else:
-        # WebGL scatter (optionally subsample for snappiness)
-        if x.size > max_points:
-            idx = np.random.default_rng(42).choice(x.size, size=max_points, replace=False)
-            x, y = x[idx], y[idx]
+    if x.size > max_points:
+        idx = np.random.default_rng(42).choice(x.size, size=max_points, replace=False)
+        x, y = x[idx], y[idx]
 
-        fig = px.scatter(
-            x=x, y=y, render_mode="webgl",
-            labels={"x": x_label, "y": y_label},
-            title=title or "Scatter",
-            opacity=0.45
+    fig = go.Figure()
+    fig.add_trace(
+        go.Scattergl(
+            x=x,
+            y=y,
+            mode="markers",
+            marker=dict(size=3, opacity=0.4, color="royalblue"),
+            name="points",
+            hovertemplate=f"{x_label}=%{{x:.4f}}<br>{y_label}=%{{y:.4f}}<extra></extra>",
         )
-        fig.update_traces(marker=dict(size=3),
-                          hovertemplate=f"{x_label}=%{{x:.4f}}<br>{y_label}=%{{y:.4f}}<extra></extra>")
+    )
 
     # OLS trend
     line = _polyfit_line(x, y)
@@ -204,9 +186,16 @@ def write_scatter_plotly(
 
     fig.update_layout(
         template="simple_white",
-        xaxis_title=x_label, yaxis_title=y_label,
+        xaxis_title=x_label,
+        yaxis_title=y_label,
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="left", x=0),
+        width=700,
+        height=700,
     )
+    fig.update_yaxes(scaleanchor="x", scaleratio=1)
+    fig.update_xaxes(constrain="domain")  # prevents weird stretching
 
+    # save HTML (inline JS for offline use)
+    import plotly.io as pio
     Path(out_html).parent.mkdir(parents=True, exist_ok=True)
-    plot_offline(fig, filename=str(out_html), auto_open=False, include_plotlyjs="cdn")
+    pio.write_html(fig, str(out_html), include_plotlyjs="inline", full_html=True)
