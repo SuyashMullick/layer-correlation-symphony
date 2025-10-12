@@ -1,0 +1,2 @@
+target,predictors,n_samples,test_size,best_model,r2,rmse,mae,pearson_r
+1760284592_T_01Porpoise_Baltic,"['1760284592_P0_20sill_lognorm_v2', '1760284592_P1_21skarpsill_lognorm_v2', '1760284592_P2_19torsk_lognorm_v2', '1760284592_P3_17Noise_2000Hz_Shipping_20181122', '1760284592_P4_18Boating']",200000,0.2,rf,0.8571921479663014,0.07462324419502879,0.03809516974904483,0.9261813368673417

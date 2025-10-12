@@ -1,0 +1,84 @@
+{% extends "index.html" %}
+
+{% block title %}Predict Ecological Impact{% endblock title %}
+
+{% block content %}
+    {{ super() }}
+    
+    <h2>Predict Impact Tool</h2>
+    <p>Upload a Target Layer (Y) and multiple Driver Layers (X) to train and run the best-performing non-linear ensemble model (RF, GBM, XGB, NN).</p>
+    
+    <form method="POST" action="{{ url_for('run_predict') }}" enctype="multipart/form-data">
+        
+        <fieldset>
+            <legend>Target Layer (Y)</legend>
+            <div>
+                <label for="target_file">1. Target Layer (e.g., Porpoise Density):</label>
+                <input type="file" id="target_file" name="target_file" accept=".tif" required> 
+            </div>
+        </fieldset>
+
+        <br>
+
+        <fieldset>
+            <legend>Driver Layers (X - Predictors)</legend>
+            <div id="predictor_list">
+                <div class="predictor-input-group">
+                    <label>Predictor 1:</label>
+                    <input type="file" name="predictor_files" accept=".tif" required>
+                </div>
+            </div>
+            
+            <button type="button" onclick="addPredictor()">+ Add Another Predictor</button>
+            <p class="note">You can remove a file by clicking the 'X' next to it.</p>
+        </fieldset>
+
+        <br>
+
+        <fieldset>
+            <legend>Model Configuration</legend>
+            <div>
+                <label for="model_choice">3. Select Model Type:</label>
+                <select id="model_choice" name="model_choice" required>
+                    <option value="auto" selected>auto (Compare all: RF, GBM, XGB, NN)</option>
+                    {% for model in model_choices %}
+                        <option value="{{ model }}">{{ model | upper }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </fieldset>
+        
+        <br>
+
+        <button type="submit">Run Prediction</button>
+        
+    </form>
+    
+    <script>
+        let predictorCount = 1;
+        const predictorList = document.getElementById('predictor_list');
+
+        function addPredictor() {
+            predictorCount++;
+            const newDiv = document.createElement('div');
+            newDiv.className = 'predictor-input-group';
+            newDiv.innerHTML = `
+                <label>Predictor ${predictorCount}:</label>
+                <input type="file" name="predictor_files" accept=".tif" required>
+                <button type="button" onclick="removePredictor(this)">X Remove</button>
+            `;
+            predictorList.appendChild(newDiv);
+        }
+
+        function removePredictor(button) {
+            const group = button.parentNode;
+            group.remove();
+            // Re-label the remaining inputs (optional, but good UX)
+            const remainingGroups = predictorList.getElementsByClassName('predictor-input-group');
+            for(let i = 0; i < remainingGroups.length; i++) {
+                remainingGroups[i].querySelector('label').innerText = `Predictor ${i + 1}:`;
+            }
+            predictorCount = remainingGroups.length;
+        }
+    </script>
+{% endblock content %}

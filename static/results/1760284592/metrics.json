@@ -1,0 +1,17 @@
+{
+  "target": "1760284592_T_01Porpoise_Baltic",
+  "predictors": [
+    "1760284592_P0_20sill_lognorm_v2",
+    "1760284592_P1_21skarpsill_lognorm_v2",
+    "1760284592_P2_19torsk_lognorm_v2",
+    "1760284592_P3_17Noise_2000Hz_Shipping_20181122",
+    "1760284592_P4_18Boating"
+  ],
+  "n_samples": 200000,
+  "test_size": 0.2,
+  "best_model": "rf",
+  "r2": 0.8571921479663014,
+  "rmse": 0.07462324419502879,
+  "mae": 0.03809516974904483,
+  "pearson_r": 0.9261813368673417
+}

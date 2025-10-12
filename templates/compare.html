@@ -1,0 +1,34 @@
+{% extends "index.html" %}
+
+{% block title %}Compare Layers{% endblock title %}
+
+{% block main_nav_links %}
+    
+    <h2>Compare Tool Interface</h2>
+    <p>Please select the two layers you wish to compare:</p>
+    
+    {# 1. Start the FORM here and define the action/method #}
+    <form method="POST" action="/run_compare" enctype="multipart/form-data">
+        
+        {# Layer 1 Input #}
+        <div>
+            <label for="filePicker1">Layer 1: Select a File</label>
+            <input type="file" id="filePicker1" name="user_file1" required> 
+            <span id="fileName1" class="file-name-display">No file selected.</span>
+        </div>
+        <br><br>
+        
+        {# Layer 2 Input #}
+        <div>
+            <label for="filePicker2">Layer 2: Select a File</label>
+            <input type="file" id="filePicker2" name="user_file2" required>
+            <span id="fileName2" class="file-name-display">No file selected.</span>
+        </div>
+        <br><br>
+        
+        {# 2. The button must be type="submit" to trigger the form action #}
+        <button type="submit">Compare</button>
+        
+    </form>
+    
+{% endblock main_nav_links %}

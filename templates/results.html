@@ -1,0 +1,70 @@
+{% extends "index.html" %}
+
+{% block title %}Analysis Results{% endblock title %}
+
+{% block content %}
+    {{ super() }}
+    
+    <h2>Analysis Results (Run ID: {{ run_id }})</h2>
+    
+    {% if metrics %}
+        <h3>Metrics (Model: {{ metrics.best_model if is_prediction else "Correlation" }})</h3>
+        <table border="1" cellpadding="10">
+            <tr>
+                <th>Metric</th>
+                <th>Value</th>
+            </tr>
+            <tr>
+                <td>R² (Coefficient of Determination)</td>
+                <td>{{ metrics.get('r2', 'N/A') | round(4) }}</td>
+            </tr>
+            <tr>
+                <td>Pearson Correlation ($r$)</td>
+                <td>{{ metrics.get('pearson_r', 'N/A') | round(4) }}</td>
+            </tr>
+            <tr>
+                <td>RMSE (Root Mean Squared Error)</td>
+                <td>{{ metrics.get('rmse', 'N/A') | round(4) }}</td>
+            </tr>
+            {% if is_prediction %}
+            <tr>
+                <td>Total Samples Used (N)</td>
+                <td>{{ metrics.n_samples | int }}</td>
+            </tr>
+            {% endif %}
+        </table>
+        
+        <h3 style="margin-top: 30px;">Visual Diagnostics</h3>
+
+        {% if is_prediction %}
+            <h4>Prediction Model Diagnostics</h4>
+            <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                <div>
+                    <h5>Parity Plot (Observed vs. Predicted)</h5>
+                    <img src="{{ scatter_url }}" alt="Parity Plot" style="max-width: 450px; border: 1px solid #ccc;">
+                </div>
+                <div>
+                    <h5>Residuals Histogram</h5>
+                    <img src="{{ residuals_url }}" alt="Residuals Histogram" style="max-width: 450px; border: 1px solid #ccc;">
+                </div>
+                {% if is_prediction and is_tree_model %}
+                <div>
+                    <h5>Feature Importance</h5>
+                    <img src="{{ importance_url }}" alt="Feature Importance Plot" style="max-width: 450px; border: 1px solid #ccc;">
+                </div>
+            {% endif %}
+            </div>
+        {% else %}
+            <h4>Correlation Scatter Plot</h4>
+            <img src="{{ scatter_url }}" alt="Correlation Scatter Plot" style="max-width: 600px; border: 1px solid #ccc;">
+        {% endif %}
+
+    {% else %}
+        <p>Could not load metrics for this run.</p>
+    {% endif %}
+
+    <p style="margin-top: 20px;">
+        <a href="/compare">Run another comparison</a> | <a href="/predict">Run a prediction</a>
+    </p>
+
+{% endblock content %}

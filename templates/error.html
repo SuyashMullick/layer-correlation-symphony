@@ -1,0 +1,25 @@
+{% extends "index.html" %}
+
+{% block title %}<h1>Error</h1>{% endblock title %}
+
+{% block content %}
+    {{ super() }}
+    
+    <h2 style="color: red;">Analysis Failed</h2>
+    
+    {% if data.error %}
+        <p><strong>Reason:</strong> {{ data.error }}</p>
+    {% else %}
+        <p>An unknown error occurred during script execution.</p>
+    {% endif %}
+
+    {% if data.stderr %}
+        <h4 style="margin-top: 20px;">Script Error Details (Stderr):</h4>
+        <pre>{{ data.stderr }}</pre>
+    {% endif %}
+
+    <p style="margin-top: 20px;">
+        <a href="/compare">Try a different comparison</a>
+    </p>
+
+{% endblock content %}

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}CS-LNU C2B2 Hackathon{% endblock title %}</title>
+</head>
+<body>
+    <header>
+        {% block header_content %}
+        <h1>CS-LNU C2B2 Hackathon</h1>
+        {% endblock header_content %}
+    </header>
+    
+    <main>
+        {% block content %}
+        <nav>
+            
+            {% block home_block %}
+            <br>
+            <a href="{{ url_for('index') }}">Home</a>
+            <br>
+            <br>
+            {% endblock home_block %}
+            
+            {% block main_nav_links %}
+            
+            <a href="{{ url_for('compare_page') }}">Compare Layers</a>
+            <p>The C2B2 Compare Tool provides immediate, verifiable insight into the spatial relationships between any two marine data layers.
+                 By calculating Pearson's r and Spearman's ρ across overlapping pixels, the tool allows users to quickly verify theoretical ecological impacts 
+                 (like the effect of trawling on reefs) and identify critical data anomalies, such as spatial co-location bias where human pressures concentrate in high-value ecological areas. 
+                The output delivers clear metrics and an instant scatter plot for immediate visual diagnosis.</p>
+            <br><br>
+            
+            <a href="{{ url_for('predict_page') }}">Predict Ecological Impact</a>
+            <p>Our C2B2 Predict Tool delivers robust, next-generation spatial forecasting.
+                It automatically leverages superior Non-Linear Ensemble Models (Random Forest, GBM, XGBoost, and Neural Networks)
+                and employs a critical log(x+1) transformation to reliably analyze zero-inflated marine density data.
+                This approach effectively untangles complex drivers (ecology vs. human pressure) to provide planners with high-accuracy prediction maps,
+                complete with crucial uncertainty and residual maps, giving confidence to 
+                optimize conservation zoning and resource management decisions.</p>
+            
+            {% endblock main_nav_links %}
+            
+        </nav>
+        {% endblock content %}
+    </main>
+    
+    <footer>
+        {% block footer %}
+        <p>&copy; 2025 C2B2</p>
+        {% endblock footer %}
+    </footer>
+</body>
+</html>

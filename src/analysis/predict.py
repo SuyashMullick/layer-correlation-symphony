@@ -112,7 +112,6 @@ def fit_model_with_options(
     else:  # rf
         out.importances = np.asarray(est.feature_importances_, dtype="float64")
 
-    # return as a plain dict to keep your CLI code simple
     return {
         "y_test": out.y_test,
         "y_pred": out.y_pred,
