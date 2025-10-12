@@ -1,4 +1,4 @@
-# C2B2 Symphony Raster Analytics MVP
+# C2B2 Symphony Raster Analytics
 
 A Python toolkit and web application for marine spatial data analytics, built during the Mistra C2B2 Hackathon #1.
 
@@ -15,7 +15,7 @@ It enables correlation and predictive modeling across raster layers (GeoTIFFs) u
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/<your-org>/layer-correlation-symphony.git
+git clone https://github.com/SuyashMullick/layer-correlation-symphony
 cd layer-correlation-symphony
 ```
 
@@ -97,19 +97,19 @@ Compare two raster layers pixel-wise to measure linear (Pearson) and rank (Spear
 **Usage**
 
 ```bash
-python -m cli.symph-compare \
-  --a <path_to_layer_a.tif> \
-  --b <path_to_layer_b.tif> \
-  --out <output_folder> \
+python -m cli.symph-compare 
+  --a <path_to_layer_a.tif> 
+  --b <path_to_layer_b.tif> 
+  --out <output_folder> 
   [--nodata <nodata_values>]
 ```
 
 **Example**
 
 ```bash
-python -m cli.symph-compare \
-  --a data/aligned/path/to/01Porpoise_Baltic.tif \
-  --b data/aligned/path/to/32Nitrogen_Background.tif \
+python -m cli.symph-compare 
+  --a data/aligned/path/to/01Porpoise_Baltic.tif 
+  --b data/aligned/path/to/32Nitrogen_Background.tif 
   --out out/compare/porpoise_vs_nitrogen
 ```
 
@@ -132,26 +132,26 @@ Train a model to predict one target raster from several predictor rasters.
 **Usage**
 
 ```bash
-python -m cli.symph-predict \
-  --target <target.tif> \
-  --predictors <x1.tif> <x2.tif> ... \
-  --out <output_dir> \
-  [--sample <n>] [--test_size <ratio>] \
-  [--model {rf,gbm,xgb,nn,auto}] \
+python -m cli.symph-predict 
+  --target <target.tif> 
+  --predictors <x1.tif> <x2.tif> ... 
+  --out <output_dir> 
+  [--sample <n>] [--test_size <ratio>] 
+  [--model {rf,gbm,xgb,nn,auto}] 
   [--remove_outliers] [--transform_y {none,log1p}]
 ```
 
 **Example**
 
 ```bash
-python -m cli.symph-predict \
-  --target "data/aligned/path/to/01Porpoise_Baltic.tif" \
-  --predictors \
-    "data/aligned/path/to/20sill_lognorm_v2.tif" \
-    "data/aligned/path/to/17Noise_2000Hz_Shipping_20181122.tif" \
-  --out "out/predict/porpoise_vs_prey_noise" \
-  --sample 200000 \
-  --transform_y log1p \
+python -m cli.symph-predict 
+  --target "data/aligned/path/to/01Porpoise_Baltic.tif" 
+  --predictors 
+    "data/aligned/path/to/20sill_lognorm_v2.tif" 
+    "data/aligned/path/to/17Noise_2000Hz_Shipping_20181122.tif" 
+  --out "out/predict/porpoise_vs_prey_noise" 
+  --sample 200000 
+  --transform_y log1p 
   --model auto
 ```
 
