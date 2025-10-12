@@ -9,28 +9,45 @@
     
     {% if metrics %}
         <h3>Metrics (Model: {{ metrics.best_model if is_prediction else "Correlation" }})</h3>
+        
         <table border="1" cellpadding="10">
             <tr>
                 <th>Metric</th>
                 <th>Value</th>
             </tr>
+            
+            {% if is_prediction %}
             <tr>
                 <td>R² (Coefficient of Determination)</td>
                 <td>{{ metrics.get('r2') | round(4) if metrics.get('r2') is not none else 'N/A' }}</td>
             </tr>
             <tr>
-                <td>Pearson Correlation ($r$)</td>
-                <td>{{ metrics.get('pearson_r') | round(4) if metrics.get('pearson_r') is not none else 'N/A' }}</td>
-            </tr>
-            <tr>
                 <td>RMSE (Root Mean Squared Error)</td>
                 <td>{{ metrics.get('rmse') | round(4) if metrics.get('rmse') is not none else 'N/A' }}</td>
             </tr>
-            {% if is_prediction %}
+             <tr>
+                <td>MAE (Mean Absolute Error)</td>
+                <td>{{ metrics.get('mae') | round(4) if metrics.get('mae') is not none else 'N/A' }}</td>
+            </tr>
             <tr>
                 <td>Total Samples Used (N)</td>
                 <td>{{ metrics.n_samples | int if metrics.n_samples is not none else 'N/A' }}</td>
             </tr>
+            
+            {% else %}
+            <tr>
+                <td>Pearson Correlation ($r$)</td>
+                <td>{{ metrics.get('pearson_r') | round(4) if metrics.get('pearson_r') is not none else 'N/A' }}</td>
+            </tr>
+            <tr>
+                <td>Spearman Correlation ($\rho$)</td>
+                <td>{{ metrics.get('spearman_r') | round(4) if metrics.get('spearman_r') is not none else 'N/A' }}</td>
+            </tr>
+            <tr>
+                <td>Total Overlapping Pixels (N)</td>
+                <td>{{ metrics.get('n_pixels', metrics.get('n')) | int if metrics.get('n_pixels', metrics.get('n')) is not none else 'N/A' }}</td>
+            </tr>
+            
             {% endif %}
         </table>
         
@@ -52,7 +69,7 @@
                     <h5>Feature Importance</h5>
                     <img src="{{ importance_url }}" alt="Feature Importance Plot" style="max-width: 450px; border: 1px solid #ccc;">
                 </div>
-            {% endif %}
+                {% endif %}
             </div>
         {% else %}
             <h4>Correlation Scatter Plot</h4>
@@ -64,7 +81,17 @@
     {% endif %}
 
     <p style="margin-top: 20px;">
-        <a href="/compare">Run another comparison</a> | <a href="/predict">Run a prediction</a>
+        <a href="{{ url_for('compare_page') }}">Run another comparison</a> | <a href="{{ url_for('predict_page') }}">Run a prediction</a>
     </p>
+    
+    <script>
+        // HIDE THE LOADING OVERLAY IMMEDIATELY ONCE THE CONTENT IS RENDERED
+        document.addEventListener('DOMContentLoaded', function() {
+            const globalOverlay = document.getElementById('loading-overlay');
+            if (globalOverlay) {
+                globalOverlay.style.display = 'none';
+            }
+        });
+    </script>
 
 {% endblock content %}
