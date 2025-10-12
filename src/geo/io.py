@@ -1,4 +1,3 @@
-# src/geo/io.py
 from __future__ import annotations
 
 from pathlib import Path
@@ -9,7 +8,7 @@ import rasterio
 from rasterio.crs import CRS
 from rasterio.windows import from_bounds
 from affine import Affine
-from pyproj import CRS as PJCRS  # NEW
+from pyproj import CRS as PJCRS
 
 
 def _crs_equivalent(crs_a, crs_b) -> bool:
@@ -23,22 +22,19 @@ def _crs_equivalent(crs_a, crs_b) -> bool:
         A = PJCRS.from_user_input(crs_a)
         B = PJCRS.from_user_input(crs_b)
 
-        # 1) strict equality (axes/order-normalized)
+        # strict equality (axes/order-normalized)
         if A == B or A.equals(B):
             return True
 
-        # 2) EPSG code equality (covers EPSG:3035 vs WKT3035)
+        # EPSG code equality (covers EPSG:3035 vs WKT3035)
         ea, eb = A.to_epsg(), B.to_epsg()
         if ea is not None and eb is not None and ea == eb:
             return True
 
-        # 3) proj param equality for LAEA flavors (tolerant compare)
         def proj_core(c: PJCRS):
             d = c.to_dict()
-            # keys commonly present in 3035 definitions
             keep = ("proj", "lat_0", "lon_0", "x_0", "y_0", "units", "datum", "type")
             out = {k: d.get(k) for k in keep}
-            # normalize numbers to avoid float wiggles
             for k in ("lat_0", "lon_0", "x_0", "y_0"):
                 if out.get(k) is not None:
                     out[k] = round(float(out[k]), 9)
@@ -49,7 +45,6 @@ def _crs_equivalent(crs_a, crs_b) -> bool:
 
         return False
     except Exception:
-        # last resort: try rasterio's CRS equals (in case pyproj parsing failed)
         try:
             RA = CRS.from_user_input(crs_a)
             RB = CRS.from_user_input(crs_b)
@@ -94,7 +89,6 @@ def _read_window(ds, left, bottom, right, top):
     win = from_bounds(left, bottom, right, top, transform=ds.transform)
     win = win.round_offsets().round_lengths()
     arr = ds.read(1, window=win)
-    # compute new transform for the window
     col_off, row_off = int(win.col_off), int(win.row_off)
     t = ds.transform
     t_win = Affine(t.a, t.b, t.c + col_off * t.a,
@@ -119,7 +113,6 @@ def read_pair_as_arrays(path_a: str, path_b: str, extra_nodata: List[float] = No
         raise FileNotFoundError(f"Not found: {path_b}")
 
     with rasterio.open(pa) as A, rasterio.open(pb) as B:
-        # robust CRS check
         if not _crs_equivalent(A.crs, B.crs):
             raise ValueError(
                 "CRS mismatch:\n"
@@ -150,7 +143,6 @@ def read_pair_as_arrays(path_a: str, path_b: str, extra_nodata: List[float] = No
         a_win, t_win = _read_window(A, left, bottom, right, top)
         b_win, _ = _read_window(B, left, bottom, right, top)
 
-        # nodata → NaN (never treat 0 as nodata)
         a = a_win.astype("float32", copy=False)
         b = b_win.astype("float32", copy=False)
 
@@ -196,14 +188,12 @@ def read_many_as_matrix(paths: list[str], extra_nodata: list[float] | None = Non
     if len(paths) < 2:
         raise ValueError("Provide at least one target and one predictor.")
 
-    # Open all datasets
     dsets = []
     for p in paths:
         ds = rasterio.open(p)
         dsets.append(ds)
 
     try:
-        # Check CRS + resolution consistency (robust CRS compare)
         ref = dsets[0]
         ref_crs = ref.crs
         ref_res = ref.res

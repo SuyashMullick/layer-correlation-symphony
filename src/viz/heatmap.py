@@ -13,7 +13,6 @@ def save_correlation_heatmap(
     Calculates the correlation matrix of a DataFrame and saves it as a heatmap image.
     """
     if df.shape[1] < 2:
-        # No point in creating a heatmap for a single variable
         return
 
     # Calculate Pearson correlation
@@ -33,8 +32,7 @@ def save_correlation_heatmap(
     plt.yticks(rotation=0)
     plt.tight_layout()
 
-    # Ensure the output directory exists and save the figure
     out_path.parent.mkdir(parents=True, exist_ok=True)
     plt.savefig(out_path, dpi=150)
-    plt.close() # Close the plot to free up memory
+    plt.close()
     print(f"[viz] Saved correlation heatmap to: {out_path}")

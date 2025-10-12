@@ -10,7 +10,7 @@ import pandas as pd
 from src.geo.io import read_pair_as_arrays
 from src.analysis.corr import pearson_spearman
 from src.viz.plotly_viz import write_scatter_plotly
-from src.viz.heatmap import save_correlation_heatmap # <--- ADDED IMPORT
+from src.viz.heatmap import save_correlation_heatmap
 
 def main():
     ap = argparse.ArgumentParser(
@@ -44,14 +44,12 @@ def main():
     with open(out_dir / "metrics.json", "w") as f:
         json.dump(stats, f, indent=2)
 
-    # --- ADDED: Generate DataFrame and save heatmap ---
     df = pd.DataFrame({stats["layer_a"]: x, stats["layer_b"]: y})
     save_correlation_heatmap(
         df=df,
         out_path=out_dir / "predictor_heatmap.png",
         title="Layer Correlation Heatmap"
     )
-    # --------------------------------------------------
 
     try:
         write_scatter_plotly(

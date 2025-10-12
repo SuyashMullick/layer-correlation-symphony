@@ -12,7 +12,7 @@ warnings.filterwarnings('ignore')
 from src.geo.io import read_many_as_matrix
 from src.viz.diagnostics import save_parity_plot, save_residual_hist
 from src.viz.plotly_viz import write_parity_plotly, write_residuals_plotly
-from src.viz.heatmap import save_correlation_heatmap # <--- IMPORT THE NEW FUNCTION
+from src.viz.heatmap import save_correlation_heatmap
 import xgboost as xgb
 
 
@@ -200,14 +200,12 @@ def main():
     feat_names = [Path(p).stem for p in args.predictors]
     target_name = Path(args.target).stem
 
-    # --- ADDED: GENERATE AND SAVE THE CORRELATION HEATMAP ---
     predictor_df = pd.DataFrame(X, columns=feat_names)
     save_correlation_heatmap(
         df=predictor_df,
         out_path=out_dir / "predictor_heatmap.png",
         title=f"Predictor Correlation Matrix"
     )
-    # --------------------------------------------------------
 
     y = transform_target(y, args.transform_y)
 

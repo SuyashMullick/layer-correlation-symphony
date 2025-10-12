@@ -1,4 +1,3 @@
-# src/viz/plotly_viz.py
 from __future__ import annotations
 
 from pathlib import Path
@@ -193,7 +192,7 @@ def write_scatter_plotly(
         height=700,
     )
     fig.update_yaxes(scaleanchor="x", scaleratio=1)
-    fig.update_xaxes(constrain="domain")  # prevents weird stretching
+    fig.update_xaxes(constrain="domain")
 
     # save HTML (inline JS for offline use)
     import plotly.io as pio

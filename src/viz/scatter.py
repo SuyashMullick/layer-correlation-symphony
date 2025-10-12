@@ -1,11 +1,10 @@
-# src/viz/scatter.py
 from __future__ import annotations
 
 from pathlib import Path
 from typing import Optional
 import numpy as np
 import matplotlib
-matplotlib.use("Agg")  # non-interactive backend
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 

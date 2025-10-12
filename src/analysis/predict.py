@@ -75,7 +75,7 @@ def fit_model_with_options(
             min_samples_leaf=1,
             n_jobs=-1,
             random_state=random_state,
-            max_features=1.0,  # all features (scikit-learn 1.4+ default)
+            max_features=1.0,
         )
         defaults.update(rf_params)
         est = RandomForestRegressor(**defaults)
