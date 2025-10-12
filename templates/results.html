@@ -54,7 +54,7 @@
         <h3 style="margin-top: 30px;">Visual Diagnostics</h3>
 
         {% if is_prediction %}
-            <h4>Prediction Model Diagnostics (Interactive)</h4>
+            <h4>Prediction Model Diagnostics</h4>
             <div style="display: flex; gap: 20px; flex-wrap: wrap;">
                 
                 <div style="flex: 1; min-width: 450px;">
@@ -62,7 +62,7 @@
                     <iframe src="{{ plotly_parity_url }}" frameborder="0" scrolling="no" style="width: 750px; height: 750px; border: none; background: transparent;"></iframe>
                 </div>
                 
-                <div style="flex: 1; min-width: 700px;">
+                <div style="flex: 1; min-width: 800px;">
                     <h5>Residuals Histogram</h5>
                     <iframe src="{{ plotly_residuals_url }}" frameborder="0" scrolling="no" style="width: 100%; height: 750px; border: none; background: transparent;"></iframe>
                 </div>
@@ -70,9 +70,16 @@
                 {% if is_prediction and is_tree_model %}
                 <div style="flex: 1; min-width: 450px;">
                     <h5>Feature Importance</h5>
-                    <img src="{{ importance_url }}" alt="Feature Importance Plot" style="width: 100%; max-width: 500px; height: auto; border: 1px solid var(--border); background: var(--surface-light);">
+                    <img src="{{ importance_url }}" alt="Feature Importance Plot" style="width: 100%; max-width: 500px; height: auto; border: 1px solid #ddd; background: #f9f9f9;">
                 </div>
                 {% endif %}
+
+                <!-- Heatmap Display Section -->
+                <div style="flex: 1; min-width: 450px;">
+                    <h5>Predictor Correlation Heatmap</h5>
+                    <img src="{{ heatmap_url }}" alt="Predictor Correlation Heatmap" style="width: 100%; max-width: 600px; height: auto; border: 1px solid #ddd; background: #f9f9f9;">
+                </div>
+
             </div>
             
         {% else %}
@@ -99,3 +106,4 @@
     </script>
 
 {% endblock content %}
+
