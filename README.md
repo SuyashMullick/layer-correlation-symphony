@@ -207,7 +207,6 @@ Developed for the **Mistra C2B2 Hackathon #1 (2025)** by:
 - Hamza Zia
 - Abdullah Saeed
 
-With support from the **Swedish Agency for Marine and Water Management (SwAM)**.
 
 ### Special Thanks To
 
