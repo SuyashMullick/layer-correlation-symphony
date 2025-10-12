@@ -1,0 +1,10 @@
+{
+  "pearson_r": 0.09727884829044342,
+  "pearson_p": 0.0,
+  "spearman_r": 0.05865272731326737,
+  "spearman_p": 2.1981803485664727e-157,
+  "n": 207314,
+  "n_pixels": 207314,
+  "layer_a": "21torsk_lognorm_v2",
+  "layer_b": "02Catch_Gillnet"
+}
