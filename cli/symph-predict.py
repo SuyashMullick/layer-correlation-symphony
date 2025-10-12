@@ -9,17 +9,11 @@ from typing import Dict, Any, Tuple
 import warnings
 warnings.filterwarnings('ignore')
 
-# Assuming src.geo.io and src.viz.diagnostics are available
 from src.geo.io import read_many_as_matrix
 from src.viz.diagnostics import save_parity_plot, save_residual_hist
-
-# ADDED IMPORTS for Neural Network (NN)
-from sklearn.neural_network import MLPRegressor
-from sklearn.preprocessing import StandardScaler
-
-# EXISTING IMPORTS
+from src.viz.plotly_viz import write_parity_plotly, write_residuals_plotly
 import xgboost as xgb
-# REMOVED: from src.analysis.predict import fit_ridge_regression
+
 
 def transform_target(y: np.ndarray, transform_type: str) -> np.ndarray:
     """Apply transformation to the target variable."""
@@ -512,16 +506,32 @@ def main():
         out_path=out_dir / "residuals.png",
         title=f"{target_name} ({best_name}): residuals"
     )
+    
+    try:
+        write_parity_plotly(
+            y_true=best_result["y_test"],
+            y_pred=best_result["y_pred"],
+            out_html=out_dir / "parity.html",
+            title=f"{target_name} ({best_name}): predicted vs observed"
+        )
+        write_residuals_plotly(
+            residuals=best_result["y_test"] - best_result["y_pred"],
+            out_html=out_dir / "residuals.html",
+            title=f"{target_name} ({best_name}): residuals"
+        )
+        print(f"[viz] wrote interactive parity/residuals HTML")
+    except Exception as e:
+        print(f"[plotly warning] Could not create interactive plots: {e}")
 
     # Final summary
     print(f"\n{'='*60}")
     print(f"[FINAL RESULTS] {target_name} - {best_name.upper()}")
     print(f"{'='*60}")
-    print(f"  Samples:         {metrics['n_samples']:,}")
-    print(f"  R²:              {metrics['r2']:.4f}")
-    print(f"  RMSE:            {metrics['rmse']:.4f}")
-    print(f"  MAE:             {metrics['mae']:.4f}")
-    print(f"  Pearson r:       {metrics['pearson_r']:.4f}")
+    print(f"  Samples:         {metrics['n_samples']:,}")
+    print(f"  R²:              {metrics['r2']:.4f}")
+    print(f"  RMSE:            {metrics['rmse']:.4f}")
+    print(f"  MAE:             {metrics['mae']:.4f}")
+    print(f"  Pearson r:       {metrics['pearson_r']:.4f}")
     print(f"{'='*60}")
     
     print(f"\n[output] Results saved to: {out_dir}/")

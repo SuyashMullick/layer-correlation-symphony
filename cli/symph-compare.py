@@ -10,6 +10,7 @@ import pandas as pd
 from src.geo.io import read_pair_as_arrays
 from src.analysis.corr import pearson_spearman
 from src.viz.scatter import save_scatter
+from src.viz.plotly_viz import write_scatter_plotly
 
 
 def main():
@@ -51,17 +52,19 @@ def main():
     with metrics_json.open("w") as f:
         json.dump(stats, f, indent=2)
 
-    # scatter (subsample for speed/clarity)
-    save_scatter(
-        x, y,
-        r_pearson=stats["pearson_r"],
-        r_spearman=stats["spearman_r"],
-        out_path=out_dir / "scatter.png",
-        max_points=args.sample,
-        x_label=stats["layer_a"],
-        y_label=stats["layer_b"],
-        title=f"{stats['layer_a']} vs {stats['layer_b']}"
-    )
+    try:
+        write_scatter_plotly(
+            x, y,
+            r_pearson=stats["pearson_r"],
+            r_spearman=stats["spearman_r"],
+            out_html=out_dir / "scatter.html",
+            x_label=stats["layer_a"],
+            y_label=stats["layer_b"],
+            title=f"{stats['layer_a']} vs {stats['layer_b']}"
+        )
+        print(f"[symph-compare] wrote: {out_dir/'scatter.html'} (interactive)")
+    except Exception as e:
+        print(f"[plotly warning] Could not create interactive scatter: {e}")
 
     print(f"[symph-compare] n_pixels={stats['n_pixels']} "
           f"pearson_r={stats['pearson_r']:.3f} spearman_r={stats['spearman_r']:.3f}")
